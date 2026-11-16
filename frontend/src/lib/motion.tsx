@@ -4,6 +4,8 @@ import { useEffect, useRef } from 'react';
 import Lenis from 'lenis';
 
 let lenis: Lenis | null = null;
+/** v2 规范优先浏览器原生滚动；保留 Lenis 代码以便后续按设备能力启用。 */
+const ENABLE_LENIS = false;
 
 export function scrollToTop() {
   if (lenis) {
@@ -15,6 +17,7 @@ export function scrollToTop() {
 
 export function useSmoothScroll() {
   useEffect(() => {
+    if (!ENABLE_LENIS) return;
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (reduced) return;
 
@@ -80,6 +83,66 @@ export function RevealRunner({ deps }: { deps: unknown[] }) {
     return () => {
       observer?.disconnect();
       mutation?.disconnect();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, deps);
+
+  return null;
+}
+
+/** 图片镜头运动：元素从视口外进入时轻微放大，经过中心后逐渐缩小退出。
+ *  只写 CSS 变量，不覆盖现有视差 transform。 */
+export function ImageMotionRunner({ deps }: { deps: unknown[] }) {
+  useEffect(() => {
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduced) return;
+
+    let frame = 0;
+    let items: HTMLElement[] = [];
+
+    const scan = () => {
+      items = Array.from(
+        document.querySelectorAll<HTMLElement>('[data-cinematic], .article-body > div:not(.lightbox) img'),
+      );
+    };
+
+    const update = () => {
+      frame = 0;
+      const viewport = window.innerHeight;
+
+      for (const el of items) {
+        const rect = el.getBoundingClientRect();
+        if (rect.bottom < -120 || rect.top > viewport + 120) continue;
+
+        const travel = rect.height + viewport;
+        const progress = Math.min(1, Math.max(0, (viewport - rect.top) / travel));
+        const centerWeight = 1 - Math.abs(progress - 0.5) * 2;
+        const scale = 0.94 + centerWeight * 0.12;
+        el.style.setProperty('--cinema-scale', scale.toFixed(4));
+      }
+    };
+
+    const request = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+
+    scan();
+    update();
+
+    const mutation = new MutationObserver(() => {
+      scan();
+      request();
+    });
+    mutation.observe(document.body, { childList: true, subtree: true });
+
+    window.addEventListener('scroll', request, { passive: true });
+    window.addEventListener('resize', request, { passive: true });
+
+    return () => {
+      mutation.disconnect();
+      window.removeEventListener('scroll', request);
+      window.removeEventListener('resize', request);
+      if (frame) cancelAnimationFrame(frame);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);

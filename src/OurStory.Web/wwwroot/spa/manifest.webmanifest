@@ -1,0 +1,48 @@
+{
+  "name": "Feor1n",
+  "short_name": "Feor1n",
+  "description": "Feor1n 的恋爱存档",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#faf6f3",
+  "theme_color": "#faf6f3",
+  "lang": "zh-CN",
+  "dir": "ltr",
+  "categories": ["lifestyle", "social"],
+  "icons": [
+    {
+      "src": "/assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "点点滴滴",
+      "url": "/moments"
+    },
+    {
+      "name": "纪念日",
+      "url": "/anniversaries"
+    },
+    {
+      "name": "心意商城",
+      "url": "/shop"
+    }
+  ]
+}

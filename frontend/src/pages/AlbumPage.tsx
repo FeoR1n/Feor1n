@@ -216,7 +216,7 @@ export default function AlbumPage() {
                       onClick={() => setViewer({ index: indexById.get(photo.id) ?? 0 })}
                       aria-label={`查看照片：${photo.caption ?? photo.uploadedOn}`}
                     >
-                      <img src={photo.thumb} alt={photo.caption ?? photo.uploadedOn} loading="lazy" decoding="async" />
+                      <img src={photo.thumb} alt={photo.caption ?? photo.uploadedOn} data-cinematic loading="lazy" decoding="async" />
                       {photo.caption ? <span className="album-photo-cap">{photo.caption}</span> : null}
                     </button>
                   ))}

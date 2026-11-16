@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { api } from '../lib/api';
 import { formatDate } from '../lib/time';
+import { Marquee } from '../components/Studio';
 import type { AnniversaryItem, CalendarData, TimelineData } from '../lib/types';
 
 type TabKey = 'timeline' | 'upcoming' | 'calendar';
@@ -35,6 +36,8 @@ export default function AnniversariesPage() {
     return { total: all.length, privateCount, yearly: yearly.length, next };
   }, [items, privateCount]);
 
+  const marqueeText = (items ?? []).map((item) => item.title).join('  /  ');
+
   return (
     <>
       <header className="page-head">
@@ -48,26 +51,27 @@ export default function AnniversariesPage() {
           <span>重要的日期，值得被重新看见。</span>
         </p>
       </header>
+      <Marquee className="page-marquee" text={marqueeText || 'DAYS THAT MATTER'} />
 
       <div className="anniv-stats">
-        <div className="anniv-stat" data-reveal="fade">
+        <div className="anniv-stat studio-stat" data-reveal="fade">
           <p className="meta">珍藏过的日子</p>
           <div className="stat-value">{stats.total}</div>
           <div className="stat-extra">段被记住的光阴</div>
         </div>
-        <div className="anniv-stat" data-reveal="fade" style={{ '--rd': '80ms' } as CSSProperties}>
+        <div className="anniv-stat studio-stat" data-reveal="fade" style={{ '--rd': '80ms' } as CSSProperties}>
           <p className="meta">只属于彼此</p>
           <div className="stat-value">{stats.privateCount}</div>
           <div className="stat-extra">个悄然收藏的日子</div>
         </div>
-        <div className="anniv-stat" data-reveal="fade" style={{ '--rd': '160ms' } as CSSProperties}>
+        <div className="anniv-stat studio-stat" data-reveal="fade" style={{ '--rd': '160ms' } as CSSProperties}>
           <p className="meta">下一次重逢</p>
           <div className="stat-value">
             {stats.next ? formatDate(stats.next.nextDate ?? stats.next.originalDate).slice(5) : '—'}
           </div>
           <div className="stat-extra">{stats.next ? `距此还有 ${stats.next.daysUntil} 天` : '尚未写下'}</div>
         </div>
-        <div className="anniv-stat" data-reveal="fade" style={{ '--rd': '240ms' } as CSSProperties}>
+        <div className="anniv-stat studio-stat" data-reveal="fade" style={{ '--rd': '240ms' } as CSSProperties}>
           <p className="meta">岁岁相见</p>
           <div className="stat-value">{stats.yearly}</div>
           <div className="stat-extra">个每年都会重逢的日子</div>
@@ -139,7 +143,7 @@ function TimelinePanel() {
     <div className="timeline-v">
       {data.items.map((item) => (
         <div key={item.id} className="timeline-entry">
-          <Link to={`/anniversaries/${item.id}`}>
+          <Link data-cursor to={`/anniversaries/${item.id}`}>
             <span className="entry-year">{item.originalDate.slice(0, 4)}</span>
             <span className="entry-title" style={{ display: 'block' }}>
               {item.title}
@@ -213,7 +217,7 @@ function UpcomingPanel() {
   return (
     <div>
       {data.items.map((item) => (
-        <Link key={item.id} to={`/anniversaries/${item.id}`} className="archive-row">
+        <Link key={item.id} data-cursor to={`/anniversaries/${item.id}`} className="archive-row">
           <span className="archive-index">{String(item.daysUntil).padStart(2, '0')}</span>
           <span>
             <span className="archive-title">{item.title}</span>
@@ -378,7 +382,7 @@ function CalendarPanel() {
             </p>
           ) : (
             selectedCell.records.map((record) => (
-              <Link key={record.id} to={`/anniversaries/${record.id}`}>
+              <Link key={record.id} data-cursor to={`/anniversaries/${record.id}`}>
                 <span>{record.title}</span>
                 <span className="meta">{record.kindName}</span>
               </Link>

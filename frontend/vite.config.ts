@@ -14,6 +14,7 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': 'http://127.0.0.1:5080',
+      '/enter': 'http://127.0.0.1:5080',
       '/uploads': 'http://127.0.0.1:5080',
       '/media': 'http://127.0.0.1:5080',
       '/admin': 'http://127.0.0.1:5080',
@@ -23,6 +24,8 @@ export default defineConfig({
       '/logout': 'http://127.0.0.1:5080',
       '/error': 'http://127.0.0.1:5080',
       '/assets': 'http://127.0.0.1:5080',
+      // 种子相册封面由服务端静态目录提供，dev 下需要同样走代理，否则控制台会报 404。
+      '/gallery-samples': 'http://127.0.0.1:5080',
       '/manifest.webmanifest': 'http://127.0.0.1:5080',
       '/sw.js': 'http://127.0.0.1:5080',
       '/favicon.ico': 'http://127.0.0.1:5080',

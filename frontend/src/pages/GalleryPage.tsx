@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { api } from '../lib/api';
 import { useBootstrap } from '../context/BootstrapContext';
+import { Marquee } from '../components/Studio';
 import type { AlbumCard } from '../lib/types';
 
 const DESKTOP_SPANS = [5, 4, 3];
@@ -81,6 +82,8 @@ export default function GalleryPage() {
     return <div className="spinner" />;
   }
 
+  const marqueeText = data.albums.map((album) => album.title).join('  /  ');
+
   return (
     <>
       <header className="page-head">
@@ -95,6 +98,7 @@ export default function GalleryPage() {
           <span>{data.total} 帧光影</span>
         </div>
       </header>
+      <Marquee className="page-marquee" text={marqueeText || 'THE PHOTO ARCHIVE'} />
 
       <div className="album-wall">
         <div className="album-grid">
@@ -120,7 +124,7 @@ export default function GalleryPage() {
                   </form>
                 ) : (
                   <div className="album-cell">
-                    <Link to={`/gallery/${album.id}`} className="album-cover" aria-label={`打开相册：${album.title}`}>
+                    <Link to={`/gallery/${album.id}`} className="album-cover" data-cinematic data-cursor aria-label={`打开相册：${album.title}`}>
                       {album.cover ? (
                         <img src={album.cover} alt={album.title} loading="lazy" decoding="async" />
                       ) : (

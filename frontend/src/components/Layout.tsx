@@ -5,7 +5,8 @@ import { useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { Sun, MoonStar, SunMoon } from 'lucide-react';
 import { useBootstrap } from '../context/BootstrapContext';
-import { RevealRunner, useSmoothScroll, scrollToTop } from '../lib/motion';
+import { ImageMotionRunner, RevealRunner, useSmoothScroll, scrollToTop } from '../lib/motion';
+import { Cursor, Grain } from './Studio';
 
 const navItems = [
   { to: '/', label: '首页', end: true },
@@ -32,8 +33,14 @@ export default function Layout() {
   // 导航浮现 + 阅读进度线
   useEffect(() => {
     const progress = document.querySelector<HTMLElement>('.progress-line');
+    let past24 = false;
     const onScroll = () => {
-      setScrolled(window.scrollY > 24);
+      // 只在跨过阈值时更新一次 React 状态，滚动过程中不再触发重渲染。
+      const next = window.scrollY > 24;
+      if (next !== past24) {
+        past24 = next;
+        setScrolled(next);
+      }
       const max = document.documentElement.scrollHeight - window.innerHeight;
       const ratio = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
       progress?.style.setProperty('transform', `scaleX(${ratio})`);
@@ -52,6 +59,7 @@ export default function Layout() {
   }
 
   const site = data.site;
+  const isWorldHome = location.pathname === '/';
   const isDark = themeMode === 'dark' || (themeMode === 'auto' && systemDark);
   const cycleTheme = () => {
     const order: Array<'auto' | 'light' | 'dark'> = ['auto', 'light', 'dark'];
@@ -60,13 +68,16 @@ export default function Layout() {
   const ThemeIcon = themeMode === 'auto' ? SunMoon : isDark ? Sun : MoonStar;
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell${isWorldHome ? ' world-home' : ''}`}>
+      <Grain />
+      <Cursor />
       <div className="progress-line" aria-hidden="true" />
 
       <header className={`top-nav${scrolled ? ' is-scrolled' : ''}`}>
         <div className="top-nav-inner">
           <Link to="/" className="wordmark" aria-label="回到首页">
-            {site.title}
+            <span className="wordmark-mark">F</span>
+            <span>{site.title}</span>
           </Link>
           <nav className="top-nav-links" aria-label="站内导航">
             {navItems.map((item) => (
@@ -96,6 +107,24 @@ export default function Layout() {
           </div>
         </div>
       </header>
+
+      <aside className="studio-side-rail" aria-label="章节导航">
+        <nav className="studio-side-nav">
+          {navItems.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.end}
+              className={({ isActive }) => `studio-side-nav-link${isActive ? ' active' : ''}`}
+            >
+              {item.label}
+            </NavLink>
+          ))}
+        </nav>
+        <a className="studio-side-admin" href="/admin">
+          管理
+        </a>
+      </aside>
 
       <main className="app-main" id="main">
         <div className="page-enter" key={location.pathname}>
@@ -147,6 +176,7 @@ export default function Layout() {
       </nav>
 
       <RevealRunner deps={[location.pathname]} />
+      <ImageMotionRunner deps={[location.pathname]} />
     </div>
   );
 }

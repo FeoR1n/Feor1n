@@ -1,22 +1,22 @@
-// 首页 = 一部关于两个人的电影。
-// 第一屏：电影海报（年份 / 名字 / 克制短句 / 沉浸大图）。
-// 之后：按时间正序的章节场景，最后一幕 TODAY 黑场收尾。
-
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import { ArrowDown } from 'lucide-react';
 import { api } from '../lib/api';
 import { useBootstrap } from '../context/BootstrapContext';
-import { loveElapsed, formatDate } from '../lib/time';
-import { useParallax } from '../lib/motion';
+import { loveElapsed } from '../lib/time';
+import HelixGallery from '../components/HelixGallery';
+import StoryChapters from '../components/StoryChapters';
+import { buildMemoryPanels, demoAssets } from '../lib/demoAssets';
 import type { AnniversaryItem, MomentCard } from '../lib/types';
 
 export default function HomePage() {
   const { data } = useBootstrap();
   const [moments, setMoments] = useState<MomentCard[] | null>(null);
   const [anniversaries, setAnniversaries] = useState<AnniversaryItem[]>([]);
+  const [loveLetter, setLoveLetter] = useState('');
   const [now, setNow] = useState(() => new Date());
+  const heroRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     void (async () => {
@@ -29,213 +29,204 @@ export default function HomePage() {
           if (!payload.hasNext) break;
           page += 1;
         }
-        all.reverse(); // 电影按时间正序：从开始讲到现在
+        all.sort((a, b) => a.momentDate.localeCompare(b.momentDate));
         setMoments(all);
       } catch {
         setMoments([]);
       }
     })();
+
     void api.anniversaries().then((payload) => setAnniversaries(payload.items)).catch(() => {});
+    void api.home().then((payload) => setLoveLetter(payload.loveLetter)).catch(() => {});
+  }, []);
+
+  // 页面上只显示整日数，10 分钟刷新一次足够；原先 1Hz 会让整页每秒重渲染。
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(new Date()), 600_000);
+    return () => window.clearInterval(timer);
   }, []);
 
   useEffect(() => {
-    const timer = window.setInterval(() => setNow(new Date()), 1000);
-    return () => window.clearInterval(timer);
+    const hero = heroRef.current;
+    if (!hero) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+
+    let frame = 0;
+    let nextX = 0;
+    let nextY = 0;
+    const apply = () => {
+      frame = 0;
+      hero.style.setProperty('--hero-parallax-x', `${nextX.toFixed(2)}px`);
+      hero.style.setProperty('--hero-parallax-y', `${nextY.toFixed(2)}px`);
+    };
+    const move = (event: PointerEvent) => {
+      nextX = (event.clientX / window.innerWidth - 0.5) * 18;
+      nextY = (event.clientY / window.innerHeight - 0.5) * 12;
+      if (!frame) frame = requestAnimationFrame(apply);
+    };
+
+    window.addEventListener('pointermove', move, { passive: true });
+    return () => {
+      window.removeEventListener('pointermove', move);
+      if (frame) cancelAnimationFrame(frame);
+    };
   }, []);
 
   if (!data) return null;
 
   const site = data.site;
+  const chapters = moments ?? [];
   const elapsed = loveElapsed(site.loveStartedAt, now);
   const metElapsed = loveElapsed(site.metStartedAt, now);
   const startYear = site.loveStartedAt.slice(0, 4);
-  const chapters = moments ?? [];
-  const poster = chapters[0] ?? chapters[chapters.length - 1];
   const nextAnniversary = anniversaries
     .filter((item) => item.repeatYearly && !item.isArchived && item.daysUntil !== null)
     .sort((a, b) => (a.daysUntil ?? 0) - (b.daysUntil ?? 0))[0];
+  const panels = buildMemoryPanels(chapters, 12);
+  const heroPanels = panels.slice(0, 3);
+  const storyPanels = panels.slice(0, 6);
+  const letterCopy = loveLetter || site.homeSentence || site.description;
 
   return (
     <>
-      {/* ============ 第一屏 · 电影海报 ============ */}
-      <section className="film-hero">
-        {poster?.coverUrl ? (
-          <div className="hero-media kenburns">
-            <img src={poster.coverUrl} alt="" fetchPriority="high" decoding="async" />
+      <section ref={heroRef} className="world-hero" aria-labelledby="world-hero-title">
+        <a className="world-skip" href="#our-moments">跳过动画，直接浏览记忆</a>
+
+        <div className="world-hero-stage">
+          <div
+            className="hero-environment"
+            aria-hidden="true"
+            style={{ backgroundImage: `url(${demoAssets.backgrounds[0]})` }}
+          />
+          <div className="world-hero-axis" aria-hidden="true">
+            <span className="hero-axis-glow" />
+            <img src={demoAssets.centralAxis} alt="" />
           </div>
-        ) : (
-          <div className="hero-media" style={{ background: 'var(--black)' }} />
-        )}
-        <div className="hero-scrim" />
-        <div className="hero-content">
-          <p className="hero-kicker" data-reveal="fade">
-            A PRIVATE FILM · EST. {startYear}
-          </p>
-          <h1 className="hero-names" data-reveal style={{ '--rd': '120ms' } as CSSProperties}>
-            {site.boyName} <em>&amp;</em> {site.girlName}
+
+          {heroPanels[0] ? (
+            <div className="hero-photo hero-photo--main">
+              {heroPanels[0].href ? (
+                <Link to={heroPanels[0].href} aria-label={`打开 ${heroPanels[0].title}`}>
+                  <img src={heroPanels[0].thumb || heroPanels[0].src} alt={heroPanels[0].title} />
+                </Link>
+              ) : (
+                <img src={heroPanels[0].thumb || heroPanels[0].src} alt={heroPanels[0].title} />
+              )}
+              <span className="hero-photo-label">{heroPanels[0].title}</span>
+              {heroPanels[0].isPlaceholder ? <span className="hero-photo-demo">DEMO</span> : null}
+            </div>
+          ) : null}
+
+          {heroPanels[1] ? (
+            <div className="hero-photo hero-photo--far hero-photo--left">
+              <img src={heroPanels[1].thumb || heroPanels[1].src} alt="" loading="lazy" decoding="async" />
+            </div>
+          ) : null}
+
+          {heroPanels[2] ? (
+            <div className="hero-photo hero-photo--far hero-photo--right">
+              <img src={heroPanels[2].thumb || heroPanels[2].src} alt="" loading="lazy" decoding="async" />
+            </div>
+          ) : null}
+
+          <div className="hero-particles" aria-hidden="true">
+            <img className="hero-particle hero-particle--one" src={demoAssets.particles[1]} alt="" />
+            <img className="hero-particle hero-particle--two" src={demoAssets.particles[3]} alt="" />
+          </div>
+        </div>
+
+        <div className="world-hero-top">
+          <span>FEOR1N / PRIVATE WORLD</span>
+          <span>EST. {startYear}</span>
+        </div>
+
+        <div className="world-hero-main">
+          <p className="world-hero-eyebrow hero-reveal">A WORLD MADE OF US.</p>
+          <h1 id="world-hero-title" className="hero-reveal" style={{ '--rd': '80ms' } as CSSProperties}>
+            {site.title}
           </h1>
-          <p className="hero-line" data-reveal style={{ '--rd': '240ms' } as CSSProperties}>
-            {site.homeSentence}
+          <p className="world-hero-names hero-reveal" style={{ '--rd': '180ms' } as CSSProperties}>
+            {site.boyName} <em>&amp;</em> {site.girlName}
           </p>
         </div>
-        <div className="hero-meta-bar">
-          <span>EST. {formatDate(site.loveStartedAt)}</span>
-          <span className="hero-scroll-cue">
-            <i />
-            SCROLL
+
+        <div className="world-hero-bottom hero-reveal" style={{ '--rd': '280ms' } as CSSProperties}>
+          <p>{site.homeSentence}</p>
+          <a href="#our-moments" className="world-enter" data-cursor>
+            <span>进入我们的世界</span>
+            <ArrowDown />
+          </a>
+          <span className="world-hero-index">
+            {String(chapters.length).padStart(2, '0')} MOMENTS / {String(data.counts.anniversaries).padStart(2, '0')} DAYS
           </span>
-          <span>CHAPTER 01 — {String(chapters.length + 1).padStart(2, '0')}</span>
         </div>
       </section>
 
-      {/* ============ 章节 ============ */}
-      {chapters.map((moment, index) => {
-        const variant = index % 3 === 2 ? 'cinema' : index % 2 === 1 ? 'reverse' : 'normal';
-        const num = String(index + 1).padStart(2, '0');
-
-        if (variant === 'cinema') {
-          return (
-            <section key={moment.id} className="chapter chapter--cinema">
-              <div className="parallax-box" style={{ position: 'absolute', inset: 0 }}>
-                <ParallaxImage src={moment.coverUrl || ''} alt="" />
-              </div>
-              <div className="hero-scrim" style={{ background: 'linear-gradient(to top, rgba(10,9,8,.86), rgba(10,9,8,.18) 60%, rgba(10,9,8,.35))' }} />
-              <div className="chapter-grid">
-                <div className="chapter-body">
-                  <p className="hero-kicker" data-reveal="fade">
-                    CHAPTER {num} · {formatDate(moment.momentDate)}
-                  </p>
-                  <h2 className="chapter-title" data-reveal style={{ '--rd': '100ms' } as CSSProperties}>
-                    {moment.title}
-                  </h2>
-                  {moment.excerpt ? (
-                    <p className="chapter-excerpt" data-reveal style={{ '--rd': '200ms' } as CSSProperties}>
-                      {moment.excerpt}
-                    </p>
-                  ) : null}
-                  <Link className="chapter-link" to={`/moments/${moment.slug}`} data-reveal style={{ '--rd': '300ms' } as CSSProperties}>
-                    翻开这一章 <ArrowRight />
-                  </Link>
-                </div>
-              </div>
-            </section>
-          );
-        }
-
-        return (
-          <section key={moment.id} className={`chapter${variant === 'reverse' ? ' chapter--reverse' : ''}`}>
-            <div className="chapter-grid">
-              <div className="chapter-meta" data-reveal="fade">
-                <em>{num}</em> — {formatDate(moment.momentDate)}
-                {moment.location ? ` · ${moment.location}` : ''}
-              </div>
-              <figure className="chapter-figure" data-reveal="fade">
-                <div className="figure-mask mask-reveal">
-                  <ParallaxImage src={moment.coverUrl || ''} alt="" />
-                </div>
-              </figure>
-              <div className="chapter-body">
-                <p className="kicker" data-reveal="fade">
-                  CHAPTER {num}
-                </p>
-                <h2 className="chapter-title" data-reveal style={{ '--rd': '80ms' } as CSSProperties}>
-                  {moment.title}
-                </h2>
-                <p className="meta chapter-date">
-                  {formatDate(moment.momentDate)}
-                  {moment.location ? ` · ${moment.location}` : ''}
-                  {moment.loveDay > 0 ? ` · 第 ${moment.loveDay} 天` : ''}
-                </p>
-                {moment.excerpt ? (
-                  <p className="chapter-excerpt" data-reveal style={{ '--rd': '160ms' } as CSSProperties}>
-                    {moment.excerpt}
-                  </p>
-                ) : null}
-                <Link className="chapter-link" to={`/moments/${moment.slug}`} data-reveal style={{ '--rd': '240ms' } as CSSProperties}>
-                  翻开这一章 <ArrowRight />
-                </Link>
-              </div>
-            </div>
-          </section>
-        );
-      })}
-
-      {chapters.length === 0 ? (
-        <section className="chapter">
-          <p className="kicker">PROLOGUE</p>
-          <h2 className="display-md" style={{ marginTop: 14 }}>
-            故事尚未落笔。
-          </h2>
-          <p className="chapter-excerpt" style={{ marginTop: 12 }}>
-            写下第一条点滴，第一章便会从这里开始。
+      <section className="world-section-intro" id="our-moments" aria-labelledby="our-moments-title">
+        <p className="kicker">01 / OUR MOMENTS</p>
+        <div className="world-section-title-row">
+          <h2 id="our-moments-title" data-reveal>记忆不是一条线。</h2>
+          <p data-reveal style={{ '--rd': '100ms' } as CSSProperties}>
+            它们彼此靠近、交错，然后围绕同一个中心继续生长。向下滚动，穿过我们的照片。
           </p>
-        </section>
-      ) : null}
+        </div>
+      </section>
 
-      {/* ============ TODAY · 黑场收尾 ============ */}
-      <section className="chapter-today">
-        <div className="today-inner">
-          <p className="today-kicker" data-reveal="fade">
-            FINAL CHAPTER · TODAY
+      <HelixGallery panels={panels} />
+
+      <StoryChapters panels={storyPanels} />
+
+      <section
+        className="world-letter"
+        aria-labelledby="world-letter-title"
+        style={{ '--world-letter-texture': `url(${demoAssets.textures[0]})` } as CSSProperties}
+      >
+        <div className="world-letter-light" aria-hidden="true" />
+        <div className="world-letter-head">
+          <p className="kicker">03 / THE LETTER</p>
+          <span>FOR {site.girlName.toUpperCase()} &amp; {site.boyName.toUpperCase()}</span>
+        </div>
+
+        <blockquote id="world-letter-title">
+          {letterCopy || '这一页还没有落笔。'}
+        </blockquote>
+
+        {!loveLetter && !site.homeSentence ? (
+          <p className="world-letter-empty">
+            去后台写下想对彼此说的话，它会在这里安静地出现。
           </p>
-          <div className="today-counter" data-reveal>
-            第 {elapsed.days} 天
-            <small>AND COUNTING</small>
-          </div>
-          <p className="today-sub" data-reveal style={{ '--rd': '120ms' } as CSSProperties}>
-            自 {formatDate(site.loveStartedAt)} 起 · 故事有了名字，时间有了归处
-          </p>
+        ) : null}
 
-          <div className="today-grid">
-            <div className="today-cell" data-reveal style={{ '--rd': '80ms' } as CSSProperties}>
-              <p className="meta">初见至今</p>
-              <div className="value">
-                {metElapsed.days}
-                <em> 天 {String(metElapsed.hours).padStart(2, '0')}:{String(metElapsed.minutes).padStart(2, '0')}:{String(metElapsed.seconds).padStart(2, '0')}</em>
-              </div>
-            </div>
-            <div className="today-cell" data-reveal style={{ '--rd': '140ms' } as CSSProperties}>
-              <p className="meta">相伴至今</p>
-              <div className="value">
-                {elapsed.days}
-                <em> 天 {String(elapsed.hours).padStart(2, '0')}:{String(elapsed.minutes).padStart(2, '0')}:{String(elapsed.seconds).padStart(2, '0')}</em>
-              </div>
-            </div>
-            <div className="today-cell" data-reveal style={{ '--rd': '220ms' } as CSSProperties}>
-              <p className="meta">下一个日子</p>
-              <div className="value">
-                {nextAnniversary ? (
-                  <>
-                    {nextAnniversary.title}
-                    <em> · {nextAnniversary.daysUntil} 天后</em>
-                  </>
-                ) : (
-                  <em>尚未写下</em>
-                )}
-              </div>
-            </div>
-            <div className="today-cell" data-reveal style={{ '--rd': '300ms' } as CSSProperties}>
-              <p className="meta">关于这段时光</p>
-              <div className="value">
-                {data.counts.moments}
-                <em> 章 · {data.counts.anniversaries} 个纪念日</em>
-              </div>
-            </div>
+        <div className="world-letter-meta">
+          <div>
+            <span>相伴至今</span>
+            <strong>{elapsed.days}</strong>
+            <em>天</em>
           </div>
+          <div>
+            <span>初见至今</span>
+            <strong>{metElapsed.days}</strong>
+            <em>天</em>
+          </div>
+          <div>
+            <span>被记录</span>
+            <strong>{data.counts.moments}</strong>
+            <em>个瞬间</em>
+          </div>
+          <div>
+            <span>下一个日子</span>
+            <strong>{nextAnniversary ? nextAnniversary.daysUntil : '—'}</strong>
+            <em>{nextAnniversary ? '天后' : '尚未写下'}</em>
+          </div>
+        </div>
 
-          <div className="today-links" data-reveal style={{ '--rd': '300ms' } as CSSProperties}>
-            <Link to="/anniversaries">纪念日</Link>
-            <Link to="/gallery">相册</Link>
-            <Link to="/moments">点滴</Link>
-          </div>
+        <div className="world-letter-links">
+          <Link to="/gallery" data-cursor>继续看照片</Link>
+          <Link to="/moments" data-cursor>翻阅全部记录</Link>
+          <Link to="/anniversaries" data-cursor>查看纪念日</Link>
         </div>
       </section>
     </>
   );
-}
-
-function ParallaxImage({ src, alt }: { src: string; alt: string }) {
-  const ref = useParallax<HTMLImageElement>(0.09);
-  if (!src) return null;
-  return <img ref={ref} src={src} alt={alt} loading="lazy" decoding="async" data-reveal-img />;
 }

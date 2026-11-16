@@ -4,16 +4,34 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="format-detection" content="telephone=no" />
-    <meta name="theme-color" content="#faf6f3" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#171117" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#e9e6df" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#07080b" media="(prefers-color-scheme: dark)" />
     <link rel="icon" href="/favicon.ico" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="apple-touch-icon" href="/assets/icons/icon-180.png" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <title>Feor1n</title>
+    <!-- 首帧前先撑满视口，避免 CSS 到达时把 19px 的占位块撑成整屏（CLS 0.30 的唯一来源）。
+         这里只给尺寸，颜色交给 .site-preloader，免得内联样式压过主题变量。 -->
+    <style>
+      html, body { margin: 0; background: #faf6f3; }
+      #boot-preloader {
+        position: fixed; inset: 0; z-index: 10020;
+        display: flex; flex-direction: column; justify-content: center;
+        padding: 0 clamp(24px, 5vw, 72px);
+      }
+    </style>
   </head>
   <body>
+    <div id="boot-preloader" class="site-preloader" aria-hidden="true">
+      <div class="site-preloader-track"><span style="transform: scaleX(0.02)"></span></div>
+      <div class="site-preloader-row">
+        <span class="site-preloader-left"><span class="site-preloader-arrow">↳</span> LOADING — 000%</span>
+        <span class="site-preloader-label">INITIALIZING</span>
+        <span class="site-preloader-url">FEOR1N / PRIVATE ARCHIVE</span>
+      </div>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

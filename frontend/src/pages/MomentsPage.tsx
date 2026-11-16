@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 import { api } from '../lib/api';
 import { useBootstrap } from '../context/BootstrapContext';
 import { formatDate } from '../lib/time';
+import { Marquee } from '../components/Studio';
 import type { MomentsPageData } from '../lib/types';
 
 export default function MomentsPage() {
@@ -13,6 +14,7 @@ export default function MomentsPage() {
   const [pageData, setPageData] = useState<MomentsPageData | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [preview, setPreview] = useState<{ src: string; x: number; y: number } | null>(null);
 
   const load = async (page: number, append: boolean) => {
     setLoadingMore(true);
@@ -36,6 +38,7 @@ export default function MomentsPage() {
   }
 
   const startYear = data.site.loveStartedAt.slice(0, 4);
+  const titles = pageData.items.map((item) => item.title).join('  /  ');
 
   return (
     <>
@@ -52,6 +55,7 @@ export default function MomentsPage() {
           <span>始于 {startYear}</span>
         </div>
       </header>
+      <Marquee className="page-marquee" text={titles || 'A PRIVATE ARCHIVE'} />
 
       {error ? <div className="error-banner" style={{ margin: '0 var(--gutter)' }}>{error}</div> : null}
 
@@ -61,8 +65,15 @@ export default function MomentsPage() {
             key={item.id}
             to={`/moments/${item.slug}`}
             className="archive-row"
+            data-cursor={item.coverThumb ? 'preview' : undefined}
             data-reveal="fade"
             style={{ '--rd': `${Math.min(index, 8) * 50}ms` } as CSSProperties}
+            onMouseMove={(event) => {
+              if (item.coverThumb) {
+                setPreview({ src: item.coverThumb, x: event.clientX, y: event.clientY });
+              }
+            }}
+            onMouseLeave={() => setPreview(null)}
           >
             <span className="archive-index">{String(index + 1).padStart(2, '0')}</span>
             <span>
@@ -108,6 +119,16 @@ export default function MomentsPage() {
           </div>
         ) : null}
       </div>
+
+      {preview ? (
+        <div
+          className="archive-cursor-preview"
+          style={{ left: preview.x, top: preview.y }}
+          aria-hidden="true"
+        >
+          <img src={preview.src} alt="" />
+        </div>
+      ) : null}
     </>
   );
 }
