@@ -5,6 +5,7 @@ import {
   AdditiveBlending,
   BufferAttribute,
   BufferGeometry,
+  DynamicDrawUsage,
   Points,
   PointsMaterial,
   Color,
@@ -18,26 +19,32 @@ export interface ParticleField {
   dispose(): void;
 }
 
+/** 稳定伪随机：同一套照片每次加载得到相同的粒子分布。 */
+function hash01(seed: number): number {
+  const value = Math.sin(seed * 127.1 + 311.7) * 43758.5453;
+  return value - Math.floor(value);
+}
+
 export function createParticles(path: CameraPath, count: number): ParticleField {
   const positions = new Float32Array(count * 3);
   const phases = new Float32Array(count);
   const speeds = new Float32Array(count);
 
-  // 沿曲线铺开整段走廊：留出头发丝般的稀疏，不会盖住照片。
-  const spans = Math.max(1, Math.ceil(count / 24));
+  // 沿整条曲线均匀铺开，再叠加上稳定的小幅扰动；不复制照片，也不挤在一端。
   for (let index = 0; index < count; index += 1) {
-    const span = Math.floor(index / spans) / spans;
-    const point = path.curve.getPointAt(Math.min(0.999, span + Math.random() * 0.02));
-    positions[index * 3] = point.x + (Math.random() - 0.5) * 16;
-    positions[index * 3 + 1] = point.y + (Math.random() - 0.5) * 9;
-    positions[index * 3 + 2] = point.z + (Math.random() - 0.5) * 6;
-    phases[index] = Math.random() * Math.PI * 2;
-    speeds[index] = 0.12 + Math.random() * 0.22;
+    const t = count <= 1 ? 0.45 : index / (count - 1);
+    const point = path.curve.getPointAt(Math.min(0.999, Math.max(0, t)));
+    const jitter = (seed: number) => hash01(index * 17.3 + seed) - 0.5;
+    positions[index * 3] = point.x + jitter(0.7) * 16;
+    positions[index * 3 + 1] = point.y + jitter(2.1) * 9;
+    positions[index * 3 + 2] = point.z + jitter(5.4) * 6;
+    phases[index] = hash01(index * 7.9 + 1.3) * Math.PI * 2;
+    speeds[index] = 0.12 + hash01(index * 3.7 + 4.2) * 0.22;
   }
 
   const geometry = new BufferGeometry();
   const positionAttribute = new BufferAttribute(positions, 3);
-  positionAttribute.setUsage(35048); // DynamicDrawUsage
+  positionAttribute.setUsage(DynamicDrawUsage);
   geometry.setAttribute('position', positionAttribute);
 
   const material = new PointsMaterial({

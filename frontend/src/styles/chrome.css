@@ -156,6 +156,97 @@
   height: 16px;
 }
 
+.site-menu-toggle {
+  display: none;
+}
+
+@media (max-width: 959px) {
+  .site-menu-toggle {
+    display: inline-grid;
+  }
+}
+
+.site-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  overflow: hidden;
+  visibility: hidden;
+  pointer-events: none;
+  background: color-mix(in srgb, var(--color-paper) 97%, transparent);
+  border-bottom: 1px solid var(--color-line-light-soft);
+  transform: translate3d(0, -12px, 0);
+  opacity: 0;
+  transition:
+    transform var(--dur-short) var(--ease-out),
+    opacity var(--dur-short) var(--ease-out),
+    visibility 0s linear var(--dur-short);
+}
+
+.site-header.is-dark .site-menu {
+  background: color-mix(in srgb, var(--color-void) 97%, transparent);
+  border-bottom-color: var(--color-line-dark-soft);
+}
+
+.site-menu.is-open {
+  visibility: visible;
+  pointer-events: auto;
+  transform: none;
+  opacity: 1;
+  transition-delay: 0s;
+}
+
+.site-menu__nav {
+  display: grid;
+  gap: 1px;
+  padding: 10px var(--page-gutter) 18px;
+}
+
+.site-menu__link {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  min-height: 44px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--color-line-light-soft);
+  font-family: var(--font-display);
+  font-size: clamp(24px, 7vw, 36px);
+  line-height: 1;
+  color: var(--color-ink);
+}
+
+.site-header.is-dark .site-menu__link {
+  border-bottom-color: var(--color-line-dark-soft);
+  color: var(--color-light);
+}
+
+.site-menu__link small {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+}
+
+.site-header.is-dark .site-menu__link small {
+  color: var(--color-light-faint);
+}
+
+.site-menu__link.is-active {
+  color: var(--color-accent-deep);
+}
+
+.site-header.is-dark .site-menu__link.is-active {
+  color: var(--color-accent);
+}
+
+@media (min-width: 960px) {
+  .site-menu {
+    display: none;
+  }
+}
+
 .chrome-link {
   display: none;
   font-family: var(--font-mono);
@@ -194,6 +285,16 @@
   background: color-mix(in srgb, var(--color-void) 90%, transparent);
   border-top: 1px solid var(--color-line-dark-soft);
   color: var(--color-light-muted);
+  transition:
+    transform var(--dur-medium) var(--ease-out),
+    opacity var(--dur-medium) var(--ease-out);
+}
+
+/* 首页开场阶段让位给电影片头 */
+.mobile-nav.is-hidden {
+  transform: translate3d(0, 110%, 0);
+  opacity: 0;
+  pointer-events: none;
 }
 
 @media (min-width: 960px) {
@@ -232,6 +333,10 @@
 
 /* 暖纸页面上的底部导航：浅底深字，避免深色底栏与整页色彩打架 */
 @media (max-width: 959px) {
+  .app-shell--world .site-footer {
+    padding-bottom: calc(96px + env(safe-area-inset-bottom));
+  }
+
   .app-shell:not(.app-shell--dark):not(.app-shell--world) .mobile-nav {
     background: color-mix(in srgb, var(--color-paper) 96%, transparent);
     border-top-color: var(--color-line-light-soft);

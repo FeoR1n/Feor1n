@@ -16,16 +16,16 @@ export default function StoryEditorial({ moments }: { moments: MomentCard[] }) {
       <SectionHeading
         id="home-story-title"
         eyebrow="03 / STORY EDITORIAL"
-        title="被我们认真记住的日子。"
-        intro="章节不按时间排队。一段画面，一句话，和它留下的温度。每一章都可以继续读下去。"
+        title="那些没有被时间带走的部分。"
+        intro="影像、地点与短句按情绪重新剪辑。顺序不再重要，重要的是它们如何留下。"
       />
 
       {moments.length === 0 ? (
         <div className="shell">
           <div className="story-empty">
-            <p className="display-sm">故事还在等第一段文字。</p>
+            <p className="display-sm">这一卷暂时空白。</p>
             <Link to="/moments" className="text-link">
-              去写下第一页 <ArrowUpRight aria-hidden="true" />
+              写下第一段故事 <ArrowUpRight aria-hidden="true" />
             </Link>
           </div>
         </div>
@@ -65,7 +65,7 @@ export default function StoryEditorial({ moments }: { moments: MomentCard[] }) {
                 </h3>
                 {moment.excerpt ? <p className="story-chapter__excerpt">{moment.excerpt}</p> : null}
                 <Link to={`/moments/${moment.slug}`} className="text-link">
-                  打开这一章 <ArrowUpRight aria-hidden="true" />
+                  展开这一章 <ArrowUpRight aria-hidden="true" />
                 </Link>
               </div>
             </article>

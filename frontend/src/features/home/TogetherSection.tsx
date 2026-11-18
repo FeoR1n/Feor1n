@@ -28,13 +28,13 @@ export default function TogetherSection({
   const sinceMet = loveElapsed(site.metStartedAt, now);
 
   const stats = [
-    { label: '相伴至今', value: together.days, unit: '天' },
-    { label: '初见至今', value: sinceMet.days, unit: '天' },
-    { label: '被记录', value: momentCount, unit: '个瞬间' },
+    { label: '一起走过', value: together.days, unit: '天' },
+    { label: '初次相见', value: sinceMet.days, unit: '天' },
+    { label: '留下影像', value: momentCount, unit: '段' },
     {
-      label: '下一个日子',
+      label: '下一场纪念',
       value: nextAnniversary?.daysUntil ?? '—',
-      unit: nextAnniversary ? `${nextAnniversary.title} · 还有这些天` : '尚未写下',
+      unit: nextAnniversary ? `天后 · ${nextAnniversary.title}` : '暂未标记',
     },
   ];
 
@@ -44,7 +44,7 @@ export default function TogetherSection({
         <div className="together-section__head">
           <p className="eyebrow">04 / TODAY</p>
           <h2 id="home-together-title" className="display-lg" data-reveal>
-            时间一直在走，我们一直在记。
+            故事没有停在某一天。
           </h2>
         </div>
 
@@ -62,13 +62,13 @@ export default function TogetherSection({
 
         <div className="together-section__links" data-reveal>
           <Link to="/moments" className="text-link">
-            翻阅全部点滴 <ArrowUpRight aria-hidden="true" />
+            全部故事 <ArrowUpRight aria-hidden="true" />
           </Link>
           <Link to="/gallery" className="text-link">
-            继续看照片 <ArrowUpRight aria-hidden="true" />
+            影像档案 <ArrowUpRight aria-hidden="true" />
           </Link>
           <Link to="/anniversaries" className="text-link">
-            查看纪念日 <ArrowUpRight aria-hidden="true" />
+            重要日期 <ArrowUpRight aria-hidden="true" />
           </Link>
         </div>
       </div>

@@ -138,17 +138,17 @@ export default function SpatialScene({ photos, sectionId }: SpatialSceneProps) {
         <div className="shell spatial-empty__inner">
           <p className="eyebrow">02 / MEMORY FIELD</p>
           <h2 id={`${sectionId}-empty`} className="display-lg">
-            空间还没有亮起来。
+            还没有第一帧。
           </h2>
           <p>
-            第一张真实照片进入相册后，这里会长出一条可以穿行的记忆走廊。现在先去写下第一段故事，或者打开相册看看。
+            上传第一张照片后，这里会形成一段可以穿行的影像。也可以先写下一段故事。
           </p>
           <div className="spatial-empty__links">
             <Link to="/gallery">
-              前往相册 <ArrowUpRight aria-hidden="true" />
+              打开相册 <ArrowUpRight aria-hidden="true" />
             </Link>
             <Link to="/moments">
-              翻阅点滴 <ArrowUpRight aria-hidden="true" />
+              查看记录 <ArrowUpRight aria-hidden="true" />
             </Link>
           </div>
         </div>
@@ -185,7 +185,7 @@ export default function SpatialScene({ photos, sectionId }: SpatialSceneProps) {
           <div className="spatial-hud__head">
             <p className="eyebrow">02 / MEMORY FIELD</p>
             <h2 id={`${sectionId}-title`} className="display-md spatial-hud__title">
-              穿过我们留下的光。
+              记忆在这里有了纵深。
             </h2>
           </div>
 
@@ -201,10 +201,10 @@ export default function SpatialScene({ photos, sectionId }: SpatialSceneProps) {
           <div className="spatial-hud__foot">
             <span className="spatial-hud__count">{positionLabel}</span>
             <span className="spatial-hud__hint">
-              {isStatic ? '静态照片空间' : '向下滚动，穿过空间'}
+              {isStatic ? '静态影像' : '滚动，推进镜头'}
             </span>
             <a href="#home-story" className="spatial-hud__skip">
-              跳过空间 <ArrowDownRight aria-hidden="true" />
+              前往故事 <ArrowDownRight aria-hidden="true" />
             </a>
           </div>
         </div>

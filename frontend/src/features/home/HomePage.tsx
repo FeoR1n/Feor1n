@@ -4,7 +4,7 @@
 import { Suspense, lazy, useEffect, useMemo, useState } from 'react';
 import { api } from '../../lib/api';
 import { useBootstrap } from '../../context/BootstrapContext';
-import HeroWorld from './HeroWorld';
+import FilmHero from './FilmHero';
 import StoryEditorial from './StoryEditorial';
 import TogetherSection from './TogetherSection';
 import type { SpatialPhoto } from '../spatial/spatial.types';
@@ -90,18 +90,25 @@ export default function HomePage() {
     );
   }, [anniversaries]);
 
+  // Hero 与空间走廊取同一批照片，保证开场第一帧就是走廊里的第一张
+  const heroPhotos = useMemo(
+    () =>
+      (moments ?? [])
+        .filter((moment) => moment.coverUrl || moment.coverThumb)
+        .slice(-SPATIAL_LIMIT)
+        .slice(0, 6),
+    [moments],
+  );
+
   if (!data) return null;
 
   const site = data.site;
-  const featured = storyMoments[0] ?? null;
-  const farMoments = storyMoments.slice(1, 3);
 
   return (
     <>
-      <HeroWorld
+      <FilmHero
         site={site}
-        featured={featured}
-        farMoments={farMoments}
+        photos={heroPhotos}
         momentCount={data.counts.moments}
         anniversaryCount={data.counts.anniversaries}
       />
@@ -116,8 +123,8 @@ export default function HomePage() {
         <section className="home-loading" aria-label="读取失败">
           <div className="shell">
             <ErrorState
-              title="记忆没有送达。"
-              description="网络似乎断了一下。你仍然可以先去相册看看。"
+              title="影像暂时离线。"
+              description="连接中断了。你可以稍后重试，或先打开相册。"
               onRetry={() => window.location.reload()}
               tone="light"
             />

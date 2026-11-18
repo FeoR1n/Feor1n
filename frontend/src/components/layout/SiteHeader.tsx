@@ -1,4 +1,6 @@
+import { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
+import { Menu, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { NAV_ITEMS } from './SiteLayout';
 
@@ -20,6 +22,7 @@ export function SiteHeader({
   ThemeIcon,
 }: SiteHeaderProps) {
   const location = useLocation();
+  const [menuOpen, setMenuOpen] = useState(false);
   const indexPrefix = String(
     Math.max(
       0,
@@ -28,6 +31,19 @@ export function SiteHeader({
       ),
     ),
   ).padStart(2, '0');
+
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMenuOpen(false);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [menuOpen]);
 
   return (
     <header
@@ -68,7 +84,42 @@ export function SiteHeader({
           <a className="chrome-link" href="/admin">
             Admin
           </a>
+          <button
+            type="button"
+            className="chrome-btn site-menu-toggle"
+            aria-label={menuOpen ? '关闭菜单' : '打开菜单'}
+            aria-expanded={menuOpen}
+            aria-controls="site-mobile-menu"
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            {menuOpen ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}
+          </button>
         </div>
+      </div>
+
+      <div
+        id="site-mobile-menu"
+        className={`site-menu${menuOpen ? ' is-open' : ''}`}
+        aria-hidden={!menuOpen}
+      >
+        <nav className="site-menu__nav" aria-label="移动端导航">
+          {NAV_ITEMS.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.end}
+              tabIndex={menuOpen ? undefined : -1}
+              className={({ isActive }) => `site-menu__link${isActive ? ' is-active' : ''}`}
+            >
+              <span>{item.label}</span>
+              <small>{item.cn}</small>
+            </NavLink>
+          ))}
+          <a className="site-menu__link" href="/admin" tabIndex={menuOpen ? undefined : -1}>
+            <span>Admin</span>
+            <small>管理</small>
+          </a>
+        </nav>
       </div>
     </header>
   );

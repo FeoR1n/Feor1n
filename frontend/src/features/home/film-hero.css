@@ -1,0 +1,621 @@
+/* ============================================================
+   FILM HERO · Cinematic Experimental opening
+   分层的电影片头：环境光、远景、主照片、过场、标题、HUD
+   ============================================================ */
+
+.film-hero {
+  --film-shift-x: 0px;
+  --film-shift-y: 0px;
+  position: relative;
+  z-index: 2;
+  /* 滚动镜头长度：桌面约 3.2 屏，手机更短 */
+  height: 320svh;
+  background: var(--color-void);
+  color: var(--color-light);
+}
+
+.film-hero.is-static {
+  height: auto;
+  min-height: 100svh;
+}
+
+.film-hero__stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    radial-gradient(120% 90% at 62% 12%, #141a24 0%, #0c1017 44%, #080a0e 100%);
+}
+
+.film-hero.is-static .film-hero__stage {
+  position: relative;
+  height: 100svh;
+}
+
+/* ---------- 环境层 ---------- */
+.film-hero__ambient {
+  position: absolute;
+  inset: -10%;
+  z-index: 0;
+  background:
+    radial-gradient(46% 40% at 68% 24%, rgba(183, 141, 104, 0.2), transparent 70%),
+    radial-gradient(52% 46% at 22% 78%, rgba(72, 92, 128, 0.22), transparent 72%),
+    radial-gradient(30% 24% at 82% 82%, rgba(183, 141, 104, 0.09), transparent 70%);
+  filter: blur(2px);
+  animation: film-breathe 14s ease-in-out infinite alternate;
+  opacity: 1;
+}
+
+@keyframes film-breathe {
+  from {
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+  to {
+    transform: scale(1.06) translate3d(-1.2%, 1%, 0);
+  }
+}
+
+.film-hero__grid {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(244, 241, 235, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(244, 241, 235, 0.045) 1px, transparent 1px);
+  background-size: 11.5vw 11.5vw;
+  mask-image: radial-gradient(72% 62% at 50% 44%, #000 12%, transparent 82%);
+  opacity: 0.7;
+}
+
+/* 中央纵向轴线：只做空间定位，不叠加准星或装饰性 UI。 */
+.film-hero__axis {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.film-hero__axis::before {
+  content: '';
+  position: absolute;
+  top: 8%;
+  bottom: 8%;
+  left: 50%;
+  width: 1px;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(183, 141, 104, 0.08) 12%,
+    rgba(244, 241, 235, 0.19) 46%,
+    rgba(183, 141, 104, 0.12) 72%,
+    transparent
+  );
+  box-shadow: 0 0 28px rgba(183, 141, 104, 0.1);
+}
+
+.film-hero__axis::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 12%;
+  width: 90px;
+  height: 32%;
+  translate: -50% 0;
+  background: radial-gradient(ellipse at 50% 50%, rgba(183, 141, 104, 0.07), transparent 68%);
+}
+
+/* ---------- 远景照片 ---------- */
+.film-hero__parallax {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  transform: translate3d(var(--film-shift-x), var(--film-shift-y), 0);
+  transition: transform 700ms var(--ease-out);
+}
+
+.film-hero__far {
+  position: absolute;
+  inset: 0;
+}
+
+.film-hero__far-photo {
+  position: absolute;
+  overflow: hidden;
+  border: 1px solid rgba(244, 241, 235, 0.08);
+  box-shadow: 0 46px 120px rgba(0, 0, 0, 0.55);
+  filter: saturate(0.72) brightness(0.74) blur(1.2px);
+}
+
+.film-hero__far-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.film-hero__far-photo--1 {
+  width: clamp(150px, 15vw, 236px);
+  aspect-ratio: 3 / 4;
+  top: 11%;
+  left: 8%;
+  transform: rotate(-2.4deg);
+  opacity: 0.5;
+}
+
+.film-hero__far-photo--2 {
+  width: clamp(128px, 12vw, 190px);
+  aspect-ratio: 4 / 5;
+  top: 58%;
+  right: 5%;
+  transform: rotate(3deg);
+  opacity: 0.36;
+}
+
+/* ---------- 主视觉照片 ---------- */
+.film-hero__main {
+  position: absolute;
+  z-index: 3;
+  left: 58%;
+  top: 47%;
+  width: clamp(280px, 29vw, 452px);
+  aspect-ratio: 4 / 5;
+  /* 用独立的 translate 属性居中，把 transform 完全留给 GSAP */
+  translate: -50% -50%;
+  will-change: transform, opacity;
+}
+
+.film-hero__main-link {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid rgba(244, 241, 235, 0.12);
+  background: var(--color-night-soft);
+  box-shadow:
+    0 60px 160px rgba(0, 0, 0, 0.62),
+    0 0 90px rgba(183, 141, 104, 0.1);
+}
+
+.film-hero__main-link img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 1.2s var(--ease-out);
+}
+
+.film-hero__main-link:hover img {
+  transform: scale(1.03);
+}
+
+.film-hero__main-fallback {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background:
+    repeating-linear-gradient(135deg, transparent 0 14px, rgba(244, 241, 235, 0.05) 14px 15px),
+    var(--color-night);
+}
+
+.film-hero__main-meta {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 46px 20px 18px;
+  background: linear-gradient(to top, rgba(7, 8, 12, 0.86), transparent);
+  pointer-events: none;
+}
+
+.film-hero__main-meta .meta {
+  color: var(--color-accent);
+}
+
+.film-hero__main-title {
+  font-family: var(--font-display);
+  font-size: clamp(19px, 1.8vw, 24px);
+  line-height: 1.3;
+  color: var(--color-light);
+}
+
+/* ---------- 第二张照片 ---------- */
+.film-hero__secondary {
+  position: absolute;
+  z-index: 3;
+  right: 6%;
+  bottom: 12%;
+  width: clamp(180px, 19vw, 300px);
+  aspect-ratio: 3 / 4;
+  translate: 0 0;
+  overflow: hidden;
+  border: 1px solid rgba(244, 241, 235, 0.1);
+  box-shadow: 0 40px 110px rgba(0, 0, 0, 0.55);
+}
+
+.film-hero__secondary img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.86) saturate(0.92);
+}
+
+/* ---------- 过场遮罩 ---------- */
+.film-hero__veil {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  opacity: 0;
+  background:
+    radial-gradient(70% 60% at 50% 50%, rgba(8, 10, 14, 0.55), rgba(8, 10, 14, 0.92) 78%);
+}
+
+/* ---------- 标题与收束 ---------- */
+.film-hero__content {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.film-hero__title {
+  position: absolute;
+  left: var(--page-gutter);
+  bottom: clamp(132px, 17vh, 208px);
+  right: var(--page-gutter);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(8px, 1.2vw, 16px);
+  max-width: 900px;
+  will-change: transform, opacity;
+}
+
+.film-hero__eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+.film-hero__wordmark {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(64px, 9.2vw, 148px);
+  line-height: 0.9;
+  letter-spacing: -0.035em;
+  color: var(--color-light);
+  text-wrap: balance;
+}
+
+.film-hero__names {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 16px;
+  font-family: var(--font-display);
+  font-size: clamp(19px, 2.3vw, 28px);
+  letter-spacing: 0.02em;
+  color: var(--color-light-muted);
+}
+
+.film-hero__names em {
+  font-style: normal;
+  color: var(--color-accent);
+}
+
+.film-hero__closing {
+  position: absolute;
+  left: var(--page-gutter);
+  bottom: clamp(120px, 16vh, 190px);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
+  max-width: min(460px, 42vw);
+  will-change: transform, opacity;
+}
+
+.film-hero__sentence {
+  font-family: var(--font-display);
+  font-size: clamp(20px, 2.4vw, 30px);
+  line-height: 1.45;
+  Letter-spacing: -0.01em;
+  color: var(--color-light);
+}
+
+.film-hero__enter {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 0 22px;
+  border: 1px solid var(--color-line-dark);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-light);
+  transition:
+    border-color var(--dur-short) var(--ease-out),
+    background-color var(--dur-short) var(--ease-out),
+    color var(--dur-short) var(--ease-out);
+}
+
+.film-hero__enter svg {
+  width: 14px;
+  height: 14px;
+  transition: transform var(--dur-short) var(--ease-out);
+}
+
+.film-hero__enter:hover,
+.film-hero__enter:focus-visible {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-void);
+}
+
+.film-hero__enter:hover svg {
+  transform: translateY(3px);
+}
+
+/* ---------- HUD ---------- */
+.film-hero__hud {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: calc(76px + clamp(10px, 2vw, 22px)) 0 calc(34px + env(safe-area-inset-bottom));
+  pointer-events: none;
+  color: var(--color-light-faint);
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.film-hero__hud-bottom {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.film-hero__hud-mark {
+  margin-top: -6px;
+  color: var(--color-light-faint);
+  opacity: 0.8;
+}
+
+.film-hero__hud-bottom {
+  flex-wrap: wrap;
+}
+
+.film-hero__stage-label {
+  color: var(--color-light-muted);
+}
+
+.film-hero__stage-count {
+  color: var(--color-accent);
+}
+
+.film-hero__hint {
+  position: relative;
+  padding-left: 16px;
+}
+
+.film-hero__hint::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 8px;
+  height: 1px;
+  background: currentColor;
+}
+
+.film-hero__hud-numbers {
+  margin-left: auto;
+}
+
+.film-hero__progress {
+  position: absolute;
+  left: var(--page-gutter);
+  right: var(--page-gutter);
+  bottom: calc(20px + env(safe-area-inset-bottom));
+  height: 1px;
+  background: var(--color-line-dark-soft);
+  overflow: hidden;
+}
+
+.film-hero__progress span {
+  display: block;
+  height: 100%;
+  background: var(--color-accent);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  transition: transform 160ms linear;
+}
+
+/* ---------- 静态 / reduced-motion 构图 ---------- */
+.film-hero.is-static .film-hero__stage {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.film-hero.is-static .film-hero__main {
+  left: 52%;
+  top: 42%;
+  width: clamp(240px, 26vw, 380px);
+}
+
+.film-hero.is-static .film-hero__secondary {
+  right: 8%;
+  bottom: 16%;
+  opacity: 0.9;
+}
+
+.film-hero.is-static .film-hero__far-photo {
+  opacity: 0.4;
+}
+
+.film-hero.is-static .film-hero__ambient {
+  animation: none;
+}
+
+.film-hero.is-static .film-hero__title {
+  bottom: clamp(190px, 27vh, 270px);
+}
+
+.film-hero.is-static .film-hero__closing {
+  bottom: clamp(56px, 8vh, 92px);
+}
+
+.film-hero.is-static .film-hero__hud,
+.film-hero.is-static .film-hero__progress {
+  display: none;
+}
+
+/* ---------- 大屏 ---------- */
+@media (min-width: 1600px) {
+  .film-hero__main {
+    width: clamp(360px, 26vw, 480px);
+  }
+}
+
+/* ---------- 手机：竖屏电影片头，重新构图 ---------- */
+@media (max-width: 860px) {
+  .film-hero {
+    height: 230svh;
+  }
+
+  .film-hero__stage {
+    background:
+      radial-gradient(120% 70% at 60% 8%, #151b26 0%, #0b0f15 50%, #080a0e 100%);
+  }
+
+  .film-hero__grid {
+    background-size: 22vw 22vw;
+    opacity: 0.5;
+  }
+
+  /* 主照片成为竖屏主体：偏中、占据约 2/3 画面高度 */
+  .film-hero__main {
+    left: 50%;
+    top: 43%;
+    width: min(78vw, 420px);
+    aspect-ratio: 3 / 4;
+  }
+
+  .film-hero__far-photo--1 {
+    width: 36vw;
+    top: 8%;
+    left: auto;
+    right: -6%;
+    opacity: 0.42;
+  }
+
+  .film-hero__far-photo--2 {
+    display: none;
+  }
+
+  .film-hero__secondary {
+    right: 6%;
+    bottom: 9%;
+    width: 42vw;
+    aspect-ratio: 3 / 4;
+  }
+
+  /* 标题压在照片下缘，与照片形成前后关系 */
+  .film-hero__title {
+    bottom: calc(96px + env(safe-area-inset-bottom));
+    gap: 8px;
+  }
+
+  .film-hero__wordmark {
+    font-size: clamp(52px, 15vw, 88px);
+  }
+
+  .film-hero__eyebrow {
+    font-size: 9px;
+    letter-spacing: 0.26em;
+  }
+
+  .film-hero__closing {
+    bottom: calc(104px + env(safe-area-inset-bottom));
+    max-width: calc(100% - var(--page-gutter) * 2);
+  }
+
+  .film-hero__hud {
+    padding-top: calc(64px + clamp(8px, 2vw, 16px));
+    padding-bottom: calc(78px + env(safe-area-inset-bottom));
+    font-size: 9px;
+    letter-spacing: 0.18em;
+  }
+
+  .film-hero__hint,
+  .film-hero__hud-numbers {
+    display: none;
+  }
+
+  .film-hero__stage-count {
+    margin-left: auto;
+  }
+
+  .film-hero__progress {
+    bottom: calc(64px + env(safe-area-inset-bottom));
+  }
+
+  .film-hero.is-static .film-hero__main {
+    left: 50%;
+    top: 34%;
+    width: min(74vw, 380px);
+  }
+
+  .film-hero.is-static .film-hero__secondary {
+    display: none;
+  }
+
+  .film-hero.is-static .film-hero__title {
+    bottom: calc(168px + env(safe-area-inset-bottom));
+  }
+
+  .film-hero.is-static .film-hero__closing {
+    bottom: calc(38px + env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-width: 520px) {
+  .film-hero__wordmark {
+    font-size: clamp(46px, 14vw, 72px);
+  }
+
+  .film-hero__names {
+    font-size: 17px;
+  }
+
+  .film-hero__sentence {
+    font-size: 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .film-hero__ambient {
+    animation: none;
+  }
+
+  .film-hero__parallax {
+    transform: none;
+    transition: none;
+  }
+}

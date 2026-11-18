@@ -53,7 +53,7 @@ export class SpatialSceneEngine {
     position: { x: 0, y: 0, z: 0 },
     target: { x: 0, y: 0, z: 0 },
   };
-  private targetProgress = 0;
+  private warpedTarget = 0;
   private smoothProgress = 0;
   private raf = 0;
   private lastTime = 0;
@@ -69,6 +69,7 @@ export class SpatialSceneEngine {
   private failed = new Set<number>();
   private resizeObserver: ResizeObserver | null = null;
   private pointerDown: { x: number; y: number; time: number } | null = null;
+  private pointerDirty = false;
   private handlePointerMove: (event: PointerEvent) => void;
   private handlePointerLeave: () => void;
   private handlePointerDown: (event: PointerEvent) => void;
@@ -127,9 +128,11 @@ export class SpatialSceneEngine {
         ((event.clientX - rect.left) / rect.width) * 2 - 1,
         -((event.clientY - rect.top) / rect.height) * 2 + 1,
       );
+      this.pointerDirty = true;
     };
     this.handlePointerLeave = () => {
       this.pointer.set(-2, -2);
+      this.pointerDirty = false;
       this.setHover(-1);
     };
     this.handlePointerDown = (event: PointerEvent) => {
@@ -187,7 +190,9 @@ export class SpatialSceneEngine {
   }
 
   setProgress(progress: number) {
-    this.targetProgress = Math.min(1, Math.max(0, progress));
+    const raw = Math.min(1, Math.max(0, progress));
+    // 原始滚动进度经过驻留映射：焦点附近自动减速
+    this.warpedTarget = this.cameraPath ? this.cameraPath.warp(raw) : raw;
   }
 
   setVisible(visible: boolean) {
@@ -266,6 +271,8 @@ export class SpatialSceneEngine {
     const { position, target } = this.sample;
     this.camera.position.set(position.x, position.y, position.z);
     this.camera.lookAt(target.x, target.y, target.z);
+    // 轻微侧倾：只改变镜头姿态，不改变注视点，最大约 1.6°
+    if (this.sample.roll) this.camera.rotateZ(this.sample.roll);
   }
 
   private tick = (time: number) => {
@@ -276,7 +283,7 @@ export class SpatialSceneEngine {
     this.lastTime = time;
 
     // 平滑推进：scrub 给的是离散目标值，插值后镜头不会抖动
-    this.smoothProgress += (this.targetProgress - this.smoothProgress) * Math.min(1, delta * 6);
+    this.smoothProgress += (this.warpedTarget - this.smoothProgress) * Math.min(1, delta * 6);
     this.updateCamera(this.smoothProgress);
 
     const count = this.frames.length;
@@ -287,11 +294,17 @@ export class SpatialSceneEngine {
       const focus = frame.focusAt;
       if (this.smoothProgress >= focus - 0.03) active = index;
 
-      // 焦点附近的照片提亮；远离镜头的照片降低存在感
+      // 焦点附近的照片提亮；远离镜头、或仍在空间深处的照片降低存在感
       const distance = Math.abs(this.smoothProgress - focus);
       const focusBoost = Math.max(0, 1 - distance / 0.18);
-      const base = this.failed.has(index) ? 0.35 : this.loaded.has(index) ? frame.baseOpacity : 0.2;
-      const targetOpacity = base * (0.62 + focusBoost * 0.38);
+      // 只为镜头附近的照片请求纹理，避免初始阶段一次上传整条走廊。
+      if (distance < 0.24) frame.requestThumbnail();
+      // 空间纵深：与相机的真实距离越远越暗，形成前中远景层次
+      const depthFade = Math.min(1, Math.max(0, 1 - frame.group.position.distanceTo(this.camera.position) / 120));
+      const base =
+        (this.failed.has(index) ? 0.35 : this.loaded.has(index) ? frame.baseOpacity : 0.2) *
+        (0.55 + depthFade * 0.45);
+      const targetOpacity = base * (0.55 + focusBoost * 0.45);
       this.frameOpacity[index] += (targetOpacity - this.frameOpacity[index]) * Math.min(1, delta * 4);
       frame.setOpacity(this.frameOpacity[index]);
 
@@ -313,7 +326,8 @@ export class SpatialSceneEngine {
     }
 
     // 悬停：只在指针在画布内时检测，桌面端才会设置 hover
-    if (this.pointer.x > -1.5) {
+    if (this.pointerDirty && this.pointer.x > -1.5) {
+      this.pointerDirty = false;
       const frame = this.pick();
       this.setHover(frame ? frame.index : -1);
     }

@@ -47,7 +47,7 @@ export function SiteFooter({
         <div className="site-footer__bottom">
           <span>© {new Date().getFullYear()} {title}</span>
           <span>{description}</span>
-          <span>MADE FOR TWO</span>
+          <span>KEPT BETWEEN US</span>
         </div>
       </div>
     </footer>

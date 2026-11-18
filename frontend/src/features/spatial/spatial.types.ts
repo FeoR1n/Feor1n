@@ -14,6 +14,8 @@ export interface SpatialPhoto {
 export interface SpatialCameraSample {
   position: { x: number; y: number; z: number };
   target: { x: number; y: number; z: number };
+  /** 镜头侧倾（弧度）。 */
+  roll?: number;
 }
 
 export type SpatialQuality = 'high' | 'medium' | 'low';

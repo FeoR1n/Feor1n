@@ -12,10 +12,12 @@ import {
   PlaneGeometry,
   SRGBColorSpace,
   ClampToEdgeWrapping,
+  LinearFilter,
   Texture,
   TextureLoader,
   Vector3,
 } from 'three';
+import { focusProgressFor } from './createCameraPath';
 import type { CameraPath } from './createCameraPath';
 import type { SpatialPhoto } from './spatial.types';
 
@@ -38,6 +40,8 @@ export interface PhotoFrame {
   setOpacity(photo: number): void;
   /** 焦点临近时把缩略图替换为原图；每帧只调用一次，已升级则直接返回。 */
   requestHighRes(): void;
+  /** 镜头接近时才请求缩略图，避免一次上传整条走廊的纹理。 */
+  requestThumbnail(): void;
   dispose(): void;
 }
 
@@ -53,18 +57,30 @@ function hash01(seed: number): number {
   return value - Math.floor(value);
 }
 
-/** 每张照片挂在镜头稍前方的一侧：镜头走到焦点时，照片正落在画面侧边。 */
+/**
+ * 每张照片挂在镜头稍前方的一侧：镜头走到焦点时，照片正落在画面侧边。
+ * 序号按 5 张一组形成节奏：三张中景主照片 + 一张近景（更大、更贴近轨迹）
+ * + 一张远景（更小、更靠外），避免整条走廊均匀等距。
+ */
 function framePlacement(index: number, count: number) {
+  const rhythm = index % 5;
+  const layer = rhythm === 3 ? 'near' : rhythm === 4 ? 'far' : 'mid';
   const side = index % 2 === 0 ? 1 : -1;
-  // 横向偏移保持在 3.4 个单位的标称距离之内，照片不会跑出视野
-  const lateral = 2.1 + hash01(index * 3.1 + 0.7) * 1.1;
-  const height = (hash01(index * 5.7 + 2.3) - 0.5) * 1.9;
+
+  // 横向偏移：中景贴着视野侧边，近景更靠内（掠过时占大画面），远景更靠外
+  const lateralBase = layer === 'near' ? 1.35 : layer === 'far' ? 2.9 : 2.1;
+  const lateral = lateralBase + hash01(index * 3.1 + 0.7) * (layer === 'far' ? 1.2 : 0.9);
+  const heightRange = layer === 'far' ? 2.6 : 1.9;
+  const height = (hash01(index * 5.7 + 2.3) - 0.5) * heightRange;
   const tilt = (hash01(index * 9.3 + 1.9) - 0.5) * 0.1;
   const yaw = (hash01(index * 1.7 + 4.1) - 0.5) * 0.2;
-  const scale = 0.92 + hash01(index * 2.9 + 0.3) * 0.34;
+
+  // 尺寸：近景 1.25×，远景 0.72×，中景保持基准
+  const layerScale = layer === 'near' ? 1.25 : layer === 'far' ? 0.72 : 1;
+  const scale = (0.92 + hash01(index * 2.9 + 0.3) * 0.34) * layerScale;
   const aspect = index % 4 === 2 ? 1.24 : index % 3 === 1 ? 1 : 0.78;
-  // 焦点：镜头沿曲线走到这里时，照片正处在画面中段
-  const focusAt = count <= 1 ? 0.45 : 0.12 + (index / Math.max(1, count - 1)) * 0.66;
+  const focusAt = focusProgressFor(index, count);
+
   return {
     side,
     lateral,
@@ -72,11 +88,12 @@ function framePlacement(index: number, count: number) {
     tilt,
     yaw,
     focusAt,
-    // 照片挂在焦点稍前方，穿过时需要一点时间
-    forward: 5.0,
+    // 照片挂在焦点稍前方，穿过时需要一点时间；近景更贴近镜头
+    forward: layer === 'near' ? 3.4 : 5.0,
     frameWidth: 4.0 * scale * Math.min(1.26, aspect),
     frameHeight: 4.0 * scale,
-    baseOpacity: 1,
+    // 远景本身压暗，由引擎再按焦点提亮
+    baseOpacity: layer === 'far' ? 0.72 : 1,
   };
 }
 
@@ -113,16 +130,29 @@ function createPlaceholderTexture(): Texture {
   }
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
+  texture.generateMipmaps = false;
+  texture.minFilter = LinearFilter;
   return texture;
 }
 
 /** 焦点照片升级为原图；失败时保留缩略图，不打断场景。 */
-function loadHighRes(url: string, material: MeshBasicMaterial, planeAspect: number) {
+function loadHighRes(
+  url: string,
+  material: MeshBasicMaterial,
+  planeAspect: number,
+  isDisposed: () => boolean,
+) {
   loader.load(
     url,
     (texture) => {
+      if (isDisposed()) {
+        texture.dispose();
+        return;
+      }
       texture.colorSpace = SRGBColorSpace;
       texture.anisotropy = 4;
+      texture.generateMipmaps = false;
+      texture.minFilter = LinearFilter;
       applyCoverUV(texture, planeAspect);
       const previous = material.map;
       material.map = texture;
@@ -202,6 +232,45 @@ export function createPhotoFrames(
     group.add(backing);
 
     let upgraded = false;
+    let thumbnailRequested = false;
+
+    const loadThumbnail = () => {
+      if (frame.disposed || thumbnailRequested) return;
+      thumbnailRequested = true;
+      loader.load(
+        photo.thumbnailUrl || photo.imageUrl,
+        (texture) => {
+          if (frame.disposed) {
+            texture.dispose();
+            return;
+          }
+          if (upgraded) {
+            texture.dispose();
+            callbacks.onTextureReady?.(frame);
+            return;
+          }
+          texture.colorSpace = SRGBColorSpace;
+          texture.anisotropy = 4;
+          texture.generateMipmaps = false;
+          texture.minFilter = LinearFilter;
+          applyCoverUV(texture, planeAspect);
+          const previous = material.map;
+          material.map = texture;
+          material.needsUpdate = true;
+          if (previous && previous !== texture) previous.dispose();
+          callbacks.onTextureReady?.(frame);
+        },
+        undefined,
+        () => {
+          if (frame.disposed) return;
+          // 加载失败：保留占位底，并标记出来，供引擎降饱和处理
+          material.userData.failed = true;
+          material.opacity = 0.35;
+          backingMaterial.opacity = 0.25;
+          callbacks.onTextureError?.(frame);
+        },
+      );
+    };
 
     const frame: PhotoFrame = {
       index,
@@ -221,8 +290,9 @@ export function createPhotoFrames(
         if (frame.disposed || upgraded) return;
         if (!photo.imageUrl || photo.imageUrl === photo.thumbnailUrl) return;
         upgraded = true;
-        loadHighRes(photo.imageUrl, material, planeAspect);
+        loadHighRes(photo.imageUrl, material, planeAspect, () => frame.disposed);
       },
+      requestThumbnail: loadThumbnail,
       dispose() {
         if (frame.disposed) return;
         frame.disposed = true;
@@ -239,30 +309,6 @@ export function createPhotoFrames(
     frames.push(frame);
 
     const planeAspect = frameWidth / frameHeight;
-    loader.load(
-      photo.thumbnailUrl || photo.imageUrl,
-      (texture) => {
-        if (frame.disposed) {
-          texture.dispose();
-          return;
-        }
-        texture.colorSpace = SRGBColorSpace;
-        texture.anisotropy = 4;
-        applyCoverUV(texture, planeAspect);
-        material.map = texture;
-        material.needsUpdate = true;
-        callbacks.onTextureReady?.(frame);
-      },
-      undefined,
-      () => {
-        if (frame.disposed) return;
-        // 加载失败：保留占位底，并标记出来，供引擎降饱和处理
-        material.userData.failed = true;
-        material.opacity = 0.35;
-        backingMaterial.opacity = 0.25;
-        callbacks.onTextureError?.(frame);
-      },
-    );
   });
 
   return frames;

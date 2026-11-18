@@ -26,9 +26,9 @@
     transform: none !important;
   }
 
-  .home-hero__far,
-  .home-hero__scroll span,
-  .home-hero__enter svg {
+  .film-hero__parallax,
+  .film-hero__progress span,
+  .film-hero__enter svg {
     transition: none !important;
   }
 
