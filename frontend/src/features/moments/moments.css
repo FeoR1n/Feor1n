@@ -1,0 +1,198 @@
+/* ============================================================
+   MOMENTS · 档案索引
+   ============================================================ */
+
+.moments-page {
+  background: var(--color-paper);
+  padding-bottom: var(--section-space);
+  min-height: 100dvh;
+}
+
+.archive-list {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--color-line-light);
+  margin-top: clamp(18px, 3vw, 32px);
+}
+
+.archive-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  grid-template-areas:
+    'index main'
+    'thumb meta';
+  align-items: start;
+  gap: 6px 14px;
+  padding: 20px 0 22px;
+  border-bottom: 1px solid var(--color-line-light-soft);
+  transition: background-color var(--dur-short) var(--ease-out);
+}
+
+@media (min-width: 860px) {
+  .archive-row {
+    grid-template-columns: 56px 96px minmax(0, 1fr) minmax(180px, auto);
+    grid-template-areas: 'index thumb main meta';
+    align-items: center;
+    gap: 28px;
+    padding: 26px 0;
+  }
+}
+
+.archive-row:hover,
+.archive-row:focus-visible {
+  background: color-mix(in srgb, var(--color-paper-soft) 60%, transparent);
+}
+
+.archive-row__index {
+  grid-area: index;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.18em;
+  color: var(--color-ink-faint);
+  padding-top: 4px;
+}
+
+.archive-row__thumb {
+  grid-area: thumb;
+  display: none;
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+  background: var(--color-paper-soft);
+}
+
+.archive-row__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 900ms var(--ease-out);
+}
+
+.archive-row:hover .archive-row__thumb img {
+  transform: scale(1.06);
+}
+
+@media (max-width: 859px) {
+  .archive-row__thumb {
+    display: block;
+    width: 68px;
+    aspect-ratio: 1 / 1;
+  }
+}
+
+.archive-row__thumb-empty {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background:
+    repeating-linear-gradient(135deg, transparent 0 8px, var(--color-line-light-soft) 8px 9px);
+}
+
+.archive-row__main {
+  grid-area: main;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.archive-row__title {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(21px, 2.6vw, 30px);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--color-ink);
+  transition: color var(--dur-short) var(--ease-out);
+}
+
+.archive-row:hover .archive-row__title {
+  color: var(--color-accent-deep);
+}
+
+.archive-row__lock {
+  font-size: 12px;
+  color: var(--color-accent);
+}
+
+.archive-row__excerpt {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: var(--color-ink-muted);
+}
+
+.archive-row__meta {
+  grid-area: meta;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 14px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+}
+
+@media (min-width: 860px) {
+  .archive-row__meta {
+    justify-content: flex-end;
+    text-align: right;
+  }
+}
+
+.archive-row__meta svg {
+  width: 14px;
+  height: 14px;
+  color: var(--color-ink-faint);
+  transition: transform var(--dur-short) var(--ease-out), color var(--dur-short) var(--ease-out);
+}
+
+.archive-row:hover .archive-row__meta svg {
+  transform: translate(2px, -2px);
+  color: var(--color-accent-deep);
+}
+
+.archive-more {
+  display: flex;
+  justify-content: center;
+  padding-top: clamp(32px, 5vw, 56px);
+}
+
+.archive-end {
+  padding-top: 40px;
+  text-align: center;
+}
+
+/* 跟随光标的封面预览：只做位移，指针设备才出现 */
+.archive-preview {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 120;
+  width: 180px;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  pointer-events: none;
+  box-shadow: 0 30px 70px rgba(10, 10, 12, 0.28);
+  will-change: transform;
+}
+
+.archive-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+@media (hover: none), (max-width: 859px) {
+  .archive-preview {
+    display: none;
+  }
+}

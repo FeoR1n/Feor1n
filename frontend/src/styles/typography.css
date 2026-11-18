@@ -1,0 +1,177 @@
+/* ============================================================
+   FEOR1N V3 · Typography
+   大字号衬线标题 / 克制无衬线正文 / 等宽元信息
+   ============================================================ */
+
+html {
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--color-ink);
+  font-size: 15.5px;
+  line-height: 1.9;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 300;
+  letter-spacing: -0.01em;
+  line-height: 1.08;
+  text-wrap: balance;
+}
+
+p {
+  margin: 0;
+  text-wrap: pretty;
+}
+
+.display-hero {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(52px, 11vw, 156px);
+  line-height: 0.96;
+  letter-spacing: -0.025em;
+}
+
+.display-xl {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(42px, 8vw, 116px);
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+}
+
+.display-lg {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(34px, 5.4vw, 76px);
+  line-height: 1.06;
+  letter-spacing: -0.015em;
+}
+
+.display-md {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(25px, 3.6vw, 42px);
+  line-height: 1.16;
+}
+
+.display-sm {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(20px, 2.4vw, 27px);
+  line-height: 1.24;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.3em;
+  line-height: 1.4;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+.eyebrow::before {
+  content: '';
+  display: inline-block;
+  width: 22px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.7;
+}
+
+.eyebrow--plain::before {
+  display: none;
+}
+
+.eyebrow--muted {
+  color: var(--color-ink-muted);
+}
+
+.meta {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+}
+
+.meta-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 0;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+}
+
+.meta-line > span + span::before {
+  content: '/';
+  margin: 0 10px;
+  color: var(--color-ink-faint);
+}
+
+.prose {
+  max-width: var(--reading-max);
+  font-size: 16px;
+  line-height: 1.95;
+  color: var(--color-ink-soft);
+}
+
+.prose > p + p {
+  margin-top: 1.35em;
+}
+
+.prose strong {
+  color: var(--color-ink);
+  font-weight: 500;
+}
+
+.lede {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(19px, 2.2vw, 26px);
+  line-height: 1.55;
+  letter-spacing: -0.005em;
+  color: var(--color-ink-soft);
+  text-wrap: pretty;
+}
+
+.serif-italic {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+}
+
+.on-dark {
+  color: var(--color-light);
+}
+
+.on-dark .meta,
+.on-dark .meta-line,
+.on-dark .lede {
+  color: var(--color-light-muted);
+}
+
+.on-dark .eyebrow {
+  color: var(--color-accent);
+}

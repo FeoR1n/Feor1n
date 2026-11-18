@@ -1,0 +1,87 @@
+/* ============================================================
+   FEOR1N V3 · Design Tokens
+   深墨空间 / 暖纸阅读 / 铜金点缀
+   ============================================================ */
+:root {
+  /* 空间 */
+  --color-void: #090b10;
+  --color-night: #11151d;
+  --color-night-soft: #1a202a;
+  --color-night-line: rgba(244, 241, 235, 0.14);
+
+  /* 纸张 */
+  --color-paper: #eeeae2;
+  --color-paper-soft: #e5e0d6;
+  --color-paper-deep: #dcd6c9;
+
+  /* 墨 */
+  --color-ink: #202127;
+  --color-ink-soft: #3c3d42;
+  --color-ink-muted: #77766f;
+  --color-ink-faint: #a29f96;
+
+  /* 光 */
+  --color-light: #f4f1eb;
+  --color-light-muted: rgba(244, 241, 235, 0.66);
+  --color-light-faint: rgba(244, 241, 235, 0.4);
+
+  /* 铜金 */
+  --color-accent: #b99470;
+  --color-accent-deep: #9a744f;
+  --color-accent-soft: rgba(185, 148, 112, 0.18);
+
+  /* 发丝线 */
+  --color-line-dark: rgba(244, 241, 235, 0.16);
+  --color-line-dark-soft: rgba(244, 241, 235, 0.08);
+  --color-line-light: rgba(32, 33, 39, 0.16);
+  --color-line-light-soft: rgba(32, 33, 39, 0.08);
+
+  /* 字体 */
+  /* 中文回退链按平台覆盖：macOS/Windows 优先系统衬线，Linux 用 Noto Serif CJK */
+  --font-display: 'Cormorant Garamond', 'Songti SC', 'Noto Serif SC', 'Noto Serif CJK SC', 'Source Han Serif SC',
+    'SimSun', Georgia, serif;
+  --font-body: 'Inter', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC',
+    'Noto Sans CJK SC', sans-serif;
+  --font-mono: 'SF Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* 版式尺度 */
+  --content-max: 1440px;
+  --reading-max: 720px;
+  --page-gutter: clamp(20px, 5vw, 88px);
+  --section-space: clamp(96px, 12vw, 180px);
+
+  /* 动效 */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-editorial: cubic-bezier(0.77, 0, 0.18, 1);
+  --dur-short: 320ms;
+  --dur-medium: 560ms;
+  --dur-long: 860ms;
+
+  /* 层 */
+  --z-header: 80;
+  --z-progress: 90;
+  --z-overlay: 200;
+  --z-cursor: 300;
+
+  color-scheme: light;
+}
+
+/* 深色模式：纸张翻成深墨，空间保持同一套 token。
+   由 BootstrapContext 写在 <html data-theme="dark"> 上，跟随系统或手动切换。 */
+:root[data-theme='dark'] {
+  --color-paper: #101319;
+  --color-paper-soft: #171b23;
+  --color-paper-deep: #1d222b;
+
+  --color-ink: #f4f1eb;
+  --color-ink-soft: #d9d4c9;
+  --color-ink-muted: #a09b91;
+  --color-ink-faint: #736f67;
+
+  --color-line-light: rgba(244, 241, 235, 0.16);
+  --color-line-light-soft: rgba(244, 241, 235, 0.08);
+
+  --color-accent-deep: #c9a883;
+
+  color-scheme: dark;
+}

@@ -1,0 +1,110 @@
+/* ============================================================
+   FEOR1N V3 · Motion 收口与 Responsive 细节
+   ============================================================ */
+
+/* 减少动态效果：所有位移、3D、pin、自动巡航全部退化为静态 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .image-reveal {
+    clip-path: none !important;
+  }
+
+  .image-reveal img {
+    transform: none !important;
+  }
+
+  .home-hero__far,
+  .home-hero__scroll span,
+  .home-hero__enter svg {
+    transition: none !important;
+  }
+
+  .spatial-section {
+    height: auto !important;
+  }
+
+  .spatial-pin {
+    position: relative !important;
+    height: auto !important;
+  }
+
+  .page-enter {
+    animation: none !important;
+  }
+}
+
+/* 触屏设备不显示悬停才出现的信息 */
+@media (hover: none) {
+  .archive-row__meta svg {
+    display: none;
+  }
+}
+
+/* 手机端安全区与底部导航留白 */
+@media (max-width: 959px) {
+  .app-main {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .site-footer {
+    padding-bottom: calc(96px + env(safe-area-inset-bottom));
+  }
+
+  .spatial-hud__foot,
+  .spatial-progress {
+    bottom: calc(64px + env(safe-area-inset-bottom));
+  }
+
+  .lightbox-caption,
+  .lightbox-count {
+    bottom: calc(72px + env(safe-area-inset-bottom));
+  }
+}
+
+/* 窄屏：标题不要溢出 */
+@media (max-width: 600px) {
+  .display-hero {
+    font-size: clamp(44px, 15vw, 76px);
+  }
+
+  .display-xl {
+    font-size: clamp(34px, 11vw, 54px);
+  }
+
+  .display-lg {
+    font-size: clamp(28px, 8.6vw, 44px);
+  }
+
+  .page-intro {
+    padding-top: calc(62px + var(--page-gutter));
+  }
+
+  .article__back,
+  .album-detail__back {
+    margin-top: calc(62px + var(--page-gutter));
+  }
+
+  .site-footer__aside {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* 超宽屏：内容不无限拉伸 */
+@media (min-width: 1600px) {
+  :root {
+    --content-max: 1560px;
+  }
+}

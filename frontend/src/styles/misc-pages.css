@@ -1,0 +1,112 @@
+/* ============================================================
+   登录 / 404 / 收尾页面
+   ============================================================ */
+
+.auth-page {
+  display: grid;
+  place-items: center;
+  min-height: 100dvh;
+  padding: calc(64px + var(--page-gutter)) var(--page-gutter) calc(40px + env(safe-area-inset-bottom));
+  background:
+    radial-gradient(70% 60% at 70% 10%, rgba(185, 148, 112, 0.14), transparent 62%),
+    linear-gradient(180deg, #0d1118, #090b10 60%, #07080c);
+  color: var(--color-light);
+}
+
+.auth-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 18px;
+  width: 100%;
+  max-width: 420px;
+  padding: clamp(28px, 5vw, 44px);
+  border: 1px solid var(--color-line-dark-soft);
+  background: color-mix(in srgb, var(--color-night) 82%, transparent);
+}
+
+.auth-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 16px;
+}
+
+.auth-panel__head .brand {
+  color: var(--color-light);
+}
+
+.auth-panel__hint {
+  font-size: 13.5px;
+  line-height: 1.8;
+  color: var(--color-light-muted);
+}
+
+.auth-panel .display-lg {
+  color: var(--color-light);
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  margin-top: 6px;
+}
+
+.auth-panel__back {
+  margin-top: 8px;
+  color: var(--color-light-muted);
+  border-color: var(--color-line-dark);
+}
+
+.auth-panel__back:hover {
+  color: var(--color-accent);
+}
+
+/* ---------- 404 ---------- */
+.notfound {
+  display: flex;
+  align-items: center;
+  min-height: 100dvh;
+  padding-block: 40px;
+  background: var(--color-void);
+  color: var(--color-light);
+}
+
+.notfound__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  max-width: 640px;
+}
+
+.notfound__num {
+  margin: 6px 0 0;
+  color: transparent;
+  -webkit-text-stroke: 1px var(--color-line-dark);
+  line-height: 0.86;
+}
+
+.notfound__desc {
+  font-size: 14.5px;
+  color: var(--color-light-muted);
+}
+
+.notfound__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 36px;
+  margin-top: 18px;
+}
+
+.notfound .text-link {
+  color: var(--color-light);
+  border-color: var(--color-line-dark);
+}
+
+.notfound .text-link:hover {
+  color: var(--color-accent);
+}

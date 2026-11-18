@@ -1,0 +1,11 @@
+/* FEOR1N V3 · 样式入口
+   顺序即层叠优先级：token → 排版 → 基础 → 组件 → 页面局部样式（由组件按需 @import）。 */
+
+@import './fonts.css';
+@import './tokens.css';
+@import './typography.css';
+@import './global.css';
+@import './chrome.css';
+@import './editorial.css';
+@import './misc-pages.css';
+@import './responsive.css';

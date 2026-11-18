@@ -1,11 +1,10 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import tailwindcss from '@tailwindcss/vite';
 
 // base 固定为 /spa/：构建产物部署在 wwwroot/spa 下，由 ASP.NET Core 统一服务。
 export default defineConfig({
   base: '/spa/',
-  plugins: [react(), tailwindcss()],
+  plugins: [react()],
   build: {
     outDir: '../src/OurStory.Web/wwwroot/spa',
     emptyOutDir: true,

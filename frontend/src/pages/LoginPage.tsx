@@ -1,4 +1,4 @@
-// 登录：克制的画廊式框架，无图标无装饰。
+// 登录：与全站视觉统一的深色入口面板。认证逻辑与 ReturnUrl 安全校验保持不变。
 
 import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
@@ -37,17 +37,29 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="auth-wrap">
-      <div className="auth-frame">
-        <span className="wordmark">{data?.site.title ?? 'Feor1n'}</span>
-        <span className="kicker">PRIVATE ACCESS</span>
-        <h1 style={{ marginTop: 12 }}>管理入口</h1>
-        <p className="auth-hint">输入口令后进入</p>
+    <div className="auth-page">
+      <div className="auth-panel">
+        <div className="auth-panel__head">
+          <span className="brand">
+            <span>{data?.site.title ?? 'Feor1n'}</span>
+            <span className="brand__index" aria-hidden="true">
+              ↗
+            </span>
+          </span>
+          <p className="eyebrow">PRIVATE ACCESS</p>
+        </div>
 
-        {error ? <div className="error-banner">{error}</div> : null}
+        <h1 className="display-lg">管理入口</h1>
+        <p className="auth-panel__hint">输入口令后进入。访客无需登录，直接浏览站内内容。</p>
 
-        <form onSubmit={submit}>
-          <label className="auth-field">
+        {error ? (
+          <p className="form-error" role="alert">
+            {error}
+          </p>
+        ) : null}
+
+        <form className="auth-form" onSubmit={submit}>
+          <label className="field">
             <span>口令</span>
             <input
               type="password"
@@ -58,12 +70,12 @@ export default function LoginPage() {
               required
             />
           </label>
-          <button type="submit" className="auth-submit" disabled={busy}>
+          <button type="submit" className="btn btn--accent" disabled={busy}>
             {busy ? '正在验证' : '进入管理页'}
           </button>
         </form>
 
-        <Link to="/" className="auth-back">
+        <Link to="/" className="text-link auth-panel__back">
           ← 回到首页
         </Link>
       </div>
